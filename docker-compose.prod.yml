@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  api:
+    image: docker.io/<tên-dockerhub-của-bạn>/simple-backend:latest
+    container_name: simple-api
+    restart: always
+    ports:
+      - "3000:3000"
