@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         IMAGE_NAME = "simple-backend"
-        REGISTRY = "docker.io/${DOCKERHUB_USERNAME}"
         SERVER_HOST = "178.128.62.112"
         SERVER_USER = "root"
     }
@@ -31,7 +30,7 @@ pipeline {
                 )]) {
                     sh """
                     echo "🚧 Building Docker image..."
-                    docker build -t ${REGISTRY}/${IMAGE_NAME}:latest .
+                    docker build -t docker.io/$DOCKERHUB_USERNAME/${IMAGE_NAME}:latest .
                     """
                 }
             }
@@ -49,7 +48,7 @@ pipeline {
                     echo \$DOCKERHUB_ACCESS_TOKEN | docker login -u \$DOCKERHUB_USERNAME --password-stdin
 
                     echo "📦 Pushing image to Docker Hub..."
-                    docker push ${REGISTRY}/${IMAGE_NAME}:latest
+                    docker push docker.io/\$DOCKERHUB_USERNAME/${IMAGE_NAME}:latest
                     """
                 }
             }
