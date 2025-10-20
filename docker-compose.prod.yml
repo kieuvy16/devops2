@@ -2,8 +2,16 @@ version: "3.9"
 
 services:
   api:
-    image: docker.io/<tên-dockerhub-của-bạn>/simple-backend:latest
-    container_name: simple-api
+    image: docker.io/jerryng23/simple-backend:latest   # 👉 thay bằng Docker Hub username thật của bạn
+    container_name: simple_backend
     restart: always
     ports:
       - "3000:3000"
+    env_file:
+      - .env             # nếu bạn có file .env, Jenkins sẽ tự load biến môi trường
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
