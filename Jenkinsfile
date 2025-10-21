@@ -14,7 +14,7 @@ pipeline {
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[
-                        url: 'https://github.com/Joycee23/simple_backend.git',
+                        url: 'https://github.com/kieuvy16/devops2.git',
                         credentialsId: 'github-pat'
                     ]]
                 ])

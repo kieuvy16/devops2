@@ -1,6 +1,6 @@
 services:
   api:
-    image: docker.io/jerryng23/simple-backend:latest
+    image: docker.io/vyyy/simple-backend:latest
     container_name: simple_backend
     restart: always
     ports:
