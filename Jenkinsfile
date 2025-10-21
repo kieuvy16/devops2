@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "simple-backend"
-        SERVER_HOST = "128.199.198.164"
+        SERVER_HOST = "54.204.224.149"
         SERVER_USER = "root"
     }
 
