@@ -313,7 +313,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "simple-backend"
-        SERVER_HOST = "54.204.224.149"  // NOTE: Update if EC2 IP changes!
+        SERVER_HOST = "54.204.224.149"
         SERVER_USER = "ubuntu"
     }
 
@@ -331,7 +331,7 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Build & Push') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-cred',
@@ -341,21 +341,9 @@ pipeline {
                     sh """
                         echo "🏗️ Building Docker image..."
                         docker build -t \$DOCKERHUB_USERNAME/${IMAGE_NAME}:latest .
-                    """
-                }
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-cred',
-                    usernameVariable: 'DOCKERHUB_USERNAME',
-                    passwordVariable: 'DOCKERHUB_ACCESS_TOKEN'
-                )]) {
-                    sh """
-                        echo "📤 Pushing image to Docker Hub..."
+                        echo "📤 Logging in to Docker Hub..."
                         echo \$DOCKERHUB_ACCESS_TOKEN | docker login -u \$DOCKERHUB_USERNAME --password-stdin
+                        echo "📤 Pushing image..."
                         docker push \$DOCKERHUB_USERNAME/${IMAGE_NAME}:latest
                     """
                 }
@@ -370,18 +358,29 @@ pipeline {
                 )]) {
                     sh """
                         echo "🔍 Testing SSH connection..."
-                        ssh -o StrictHostKeyChecking=no -i \$SSH_KEY ${SERVER_USER}@${SERVER_HOST} "echo ✅ SSH connected!"
+                        ssh -v -o StrictHostKeyChecking=no -i \$SSH_KEY ${SERVER_USER}@${SERVER_HOST} "echo ✅ SSH connected!"
+
+                        echo "📁 Ensuring project directory exists..."
+                        ssh -o StrictHostKeyChecking=no -i \$SSH_KEY ${SERVER_USER}@${SERVER_HOST} "mkdir -p /home/${SERVER_USER}/project"
+
+                        echo "🔧 Checking Docker and docker-compose on server..."
+                        ssh -o StrictHostKeyChecking=no -i \$SSH_KEY ${SERVER_USER}@${SERVER_HOST} "
+                            command -v docker >/dev/null 2>&1 || { echo '❌ Docker not installed!'; exit 1; }
+                            command -v docker-compose >/dev/null 2>&1 || { echo '❌ docker-compose not installed!'; exit 1; }
+                            echo '✅ Docker & docker-compose found'
+                        "
 
                         echo "📦 Uploading docker-compose..."
                         scp -o StrictHostKeyChecking=no -i \$SSH_KEY docker-compose.prod.yml ${SERVER_USER}@${SERVER_HOST}:/home/${SERVER_USER}/project/docker-compose.yml
 
-                        echo "🚀 Deploying..."
+                        echo "🚀 Deploying Docker containers..."
                         ssh -o StrictHostKeyChecking=no -i \$SSH_KEY ${SERVER_USER}@${SERVER_HOST} "
-                            cd /home/${SERVER_USER}/project &&
-                            docker-compose pull &&
-                            docker-compose down &&
-                            docker-compose up -d &&
-                            docker image prune -f &&
+                            set -e
+                            cd /home/${SERVER_USER}/project
+                            docker-compose pull
+                            docker-compose down
+                            docker-compose up -d
+                            docker image prune -f
                             echo '✅ Deployment completed!'
                         "
                     """
