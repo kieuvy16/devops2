@@ -91,6 +91,7 @@ pipeline {
         IMAGE_NAME = "simple-backend"
         SERVER_HOST = "54.204.224.149"
         SERVER_USER = "ubuntu"
+        SSH_KEY = "server-ssh-key"
     }
 
     stages {
